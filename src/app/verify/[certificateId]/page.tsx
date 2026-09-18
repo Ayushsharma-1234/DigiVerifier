@@ -54,7 +54,7 @@ export default function VerificationPage() {
           <div className="flex items-center gap-2">
             <Scale className="w-8 h-8 text-blue-700" />
             <div>
-              <h1 className="font-bold text-xl text-blue-900 leading-tight tracking-tight">eTulaSetu</h1>
+              <h1 className="font-bold text-xl text-blue-900 leading-tight tracking-tight">DigiVerifier</h1>
               <p className="text-[10px] uppercase font-semibold text-gray-500 tracking-wider">Verification Portal</p>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function VerificationPage() {
         
         <div className="mt-8 text-center text-xs text-gray-400 space-y-1">
           <p>Scan time: {scanTime}</p>
-          <p>Powered by eTulaSetu — Ministry of Consumer Affairs, Government of India</p>
+          <p>Powered by DigiVerifier — Ministry of Consumer Affairs, Government of India</p>
         </div>
       </main>
     </div>

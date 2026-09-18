@@ -17,7 +17,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "eTulaSetu - DigiVerifier",
+  title: "DigiVerifier - DigiVerifier",
   description: "Online verification and certification of weighing and measuring instruments",
 };
 

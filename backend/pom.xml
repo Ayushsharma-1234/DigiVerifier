@@ -8,10 +8,10 @@
 		<version>3.2.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.etulasetu</groupId>
-	<artifactId>etulasetu</artifactId>
+	<groupId>com.digiverifier</groupId>
+	<artifactId>digiverifier</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>etulasetu</name>
+	<name>digiverifier</name>
 	<description>DigiVerifier Backend API</description>
 	<properties>
 		<java.version>17</java.version>
