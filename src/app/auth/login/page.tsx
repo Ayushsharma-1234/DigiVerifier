@@ -17,10 +17,10 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.string().min(1, "Email is required").email({ message: "Invalid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   role: z.enum(["APPLICANT", "LMO", "GATC", "ADMIN"], {
-    message: "Please select a role",
+    error: "Please select a role"
   }),
   rememberMe: z.boolean(),
 });
@@ -41,6 +41,9 @@ export default function LoginPage() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+      role: undefined,
+      email: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -50,34 +53,16 @@ export default function LoginPage() {
     try {
       // Mocking the API response if the backend is not running, 
       // but making the actual call as requested.
-      let response;
-      try {
-        response = await api.post("/auth/login", {
-          email: data.email,
-          password: data.password,
-          role: data.role,
-        });
-      } catch (err: unknown) {
-        console.error(err);
-        console.warn("Backend not available, using mock authentication.");
-        response = {
-          data: {
-            token: "mock-jwt-token-12345",
-            user: {
-              id: "usr-1",
-              name: "Demo User",
-              email: data.email,
-              phone: "+91 9876543210",
-              role: data.role,
-            }
-          }
-        };
-      }
+      const response = await api.post("/auth/login", {
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      });
 
       const { token, user } = response.data;
-      
+
       login(user, token);
-      
+
       if (data.rememberMe) {
         // Typically handled by setting a longer cookie expiration, 
         // but here we just store standard localStorage (handled by store).
@@ -120,7 +105,7 @@ export default function LoginPage() {
             Legal Metrology Verification Platform
           </p>
         </div>
-        
+
         <div className="mt-auto">
           <div className="h-1 w-16 bg-accent mb-6 rounded-full"></div>
           <p className="text-sm text-primary-foreground/80 font-medium">
@@ -195,10 +180,10 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="rememberMe" 
-                checked={watch("rememberMe")} 
-                onCheckedChange={(checked) => setValue("rememberMe", checked as boolean)} 
+              <Checkbox
+                id="rememberMe"
+                checked={watch("rememberMe")}
+                onCheckedChange={(checked) => setValue("rememberMe", checked as boolean)}
               />
               <Label htmlFor="rememberMe" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Remember me

@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { GATC_CATEGORIES } from "@/lib/constants";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
+import api from "@/lib/api";
 
 const ROLES = [
   { id: "APPLICANT", title: "Instrument Owner/Trader", desc: "For shopkeepers, businesses, and instrument owners", icon: Store },
@@ -32,30 +33,32 @@ type RoleType = typeof ROLES[number]["id"];
 // then use a superRefine to enforce conditionally.
 
 const registerSchema = z.object({
-  role: z.enum(["APPLICANT", "LMO", "GATC", "ADMIN"]),
+  role: z.enum(["APPLICANT", "LMO", "GATC", "ADMIN"], {
+    error: "Please select an account type"
+  }),
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().regex(/^\+91\s?\d{10}$/, "Phone must be in format +91 9999999999"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
-  
+
   // Applicant fields
   idType: z.enum(["AADHAAR", "GSTIN"]).optional(),
   idValue: z.string().optional(),
-  
+
   // LMO fields
   employeeId: z.string().optional(),
   designation: z.string().optional(),
-  
+
   // GATC fields
   organizationName: z.string().optional(),
   licenseNumber: z.string().optional(),
   authorizedCategories: z.array(z.string()).optional(),
-  
+
   // Shared fields
   state: z.string().optional(),
   district: z.string().optional(),
-  
+
   termsConfirmed: z.boolean().refine(val => val === true, "You must confirm accuracy of details"),
 }).superRefine((data, ctx) => {
   if (data.password !== data.confirmPassword) {
@@ -93,8 +96,20 @@ export default function RegisterPage() {
   const { register, handleSubmit, setValue, watch, trigger, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      role: undefined,
+      fullName: "",
+      email: "",
       phone: "+91 ",
+      password: "",
+      confirmPassword: "",
       idType: "AADHAAR",
+      idValue: "",
+      employeeId: "",
+      designation: "",
+      state: "",
+      district: "",
+      organizationName: "",
+      licenseNumber: "",
       authorizedCategories: [],
       termsConfirmed: false,
     },
@@ -133,17 +148,24 @@ export default function RegisterPage() {
     }
   };
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      // Mock API call to /api/auth/register
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Actual call would be: await api.post("/auth/register", data);
-      
-      toast.success("Registration submitted. Admin will verify your account.");
+      const payload = {
+        name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role: data.role,
+        aadhaarOrGstin: data.idValue || data.employeeId || data.licenseNumber || "N/A",
+        state: data.state,
+        district: data.district
+      };
+      await api.post("/auth/register", payload);
+      toast.success("Registration submitted successfully.");
       router.push("/auth/login");
-    } catch {
-      toast.error("Failed to register. Please try again.");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to register. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +196,7 @@ export default function RegisterPage() {
           <div className="flex items-center justify-between relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10"></div>
             <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary -z-10 transition-all duration-300" style={{ width: `${(step - 1) * 50}%` }}></div>
-            
+
             {[1, 2, 3].map((num) => (
               <div key={num} className={twMerge("flex flex-col items-center", step >= num ? "text-primary" : "text-gray-400")}>
                 <div className={twMerge("w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mb-2 transition-colors duration-300", step >= num ? "bg-primary" : "bg-gray-300")}>
@@ -190,7 +212,7 @@ export default function RegisterPage() {
 
         <div className="bg-white p-6 md:p-10 rounded-xl shadow-sm border">
           <form onSubmit={handleSubmit(onSubmit)}>
-            
+
             {/* STEP 1: Account Type */}
             {step === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -198,13 +220,13 @@ export default function RegisterPage() {
                   <h2 className="text-2xl font-bold text-gray-900">Select Account Type</h2>
                   <p className="text-muted-foreground mt-2">Choose the role that best describes you or your organization.</p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ROLES.map((role) => {
                     const Icon = role.icon;
                     const isSelected = selectedRole === role.id;
                     return (
-                      <div 
+                      <div
                         key={role.id}
                         onClick={() => setValue("role", role.id as RoleType, { shouldValidate: true })}
                         className={twMerge(
@@ -272,8 +294,8 @@ export default function RegisterPage() {
                     <div className="space-y-6">
                       <div className="space-y-3">
                         <Label>Identifier Type</Label>
-                        <RadioGroup 
-                          defaultValue={watch("idType")} 
+                        <RadioGroup
+                          defaultValue={watch("idType")}
                           onValueChange={(val) => setValue("idType", val as "AADHAAR" | "GSTIN")}
                           className="flex space-x-4"
                         >
@@ -354,14 +376,14 @@ export default function RegisterPage() {
                         <Input id="district" {...register("district")} className={errors.district ? "border-danger" : ""} />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <Label>Authorized Categories</Label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 border p-4 rounded-md bg-gray-50 max-h-60 overflow-y-auto">
                         {GATC_CATEGORIES.map(cat => (
                           <div key={cat} className="flex items-center space-x-2 bg-white p-2 border rounded shadow-sm">
-                            <Checkbox 
-                              id={`cat-${cat}`} 
+                            <Checkbox
+                              id={`cat-${cat}`}
                               checked={(watch("authorizedCategories") || []).includes(cat)}
                               onCheckedChange={() => toggleCategory(cat)}
                             />
@@ -389,13 +411,13 @@ export default function RegisterPage() {
                     <div className="grid grid-cols-2 gap-y-4 text-sm">
                       <div className="text-muted-foreground">Account Type</div>
                       <div className="font-semibold text-gray-900">{ROLES.find(r => r.id === formValues.role)?.title}</div>
-                      
+
                       <div className="text-muted-foreground">Full Name</div>
                       <div className="font-medium text-gray-900">{formValues.fullName}</div>
-                      
+
                       <div className="text-muted-foreground">Email Address</div>
                       <div className="font-medium text-gray-900">{formValues.email}</div>
-                      
+
                       <div className="text-muted-foreground">Phone Number</div>
                       <div className="font-medium text-gray-900">{formValues.phone}</div>
 
@@ -436,8 +458,8 @@ export default function RegisterPage() {
                 </Card>
 
                 <div className="flex items-start space-x-3 bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <Checkbox 
-                    id="termsConfirmed" 
+                  <Checkbox
+                    id="termsConfirmed"
                     checked={watch("termsConfirmed")}
                     onCheckedChange={(val) => setValue("termsConfirmed", val as boolean, { shouldValidate: true })}
                     className="mt-1"
@@ -457,9 +479,9 @@ export default function RegisterPage() {
             {/* Navigation Actions */}
             <div className="mt-10 flex items-center justify-between pt-6 border-t">
               {step > 1 ? (
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setStep((step - 1) as 1 | 2 | 3)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" /> Back
