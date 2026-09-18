@@ -49,7 +49,7 @@ export default function RegisterInstrumentPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [openCategory, setOpenCategory] = useState(false);
-  
+
   const form = useForm<InstrumentFormValues>({
     resolver: zodResolver(instrumentSchema),
     defaultValues: {
@@ -114,13 +114,13 @@ export default function RegisterInstrumentPage() {
       <Card className="shadow-sm">
         <CardContent className="p-6 md:p-8">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            
+
             {step === 1 && (
               <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                 {/* Category Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold border-b pb-2">Instrument Classification</h3>
-                  
+
                   <div className="space-y-2 flex flex-col">
                     <Label>Instrument Category <span className="text-red-500">*</span></Label>
                     <Popover open={openCategory} onOpenChange={setOpenCategory}>
@@ -190,7 +190,7 @@ export default function RegisterInstrumentPage() {
                       <Input placeholder="Enter manufacturer name" {...form.register("manufacturer")} className={form.formState.errors.manufacturer ? "border-danger" : ""} />
                       {form.formState.errors.manufacturer && <p className="text-xs text-danger">{form.formState.errors.manufacturer.message}</p>}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Model Number <span className="text-red-500">*</span></Label>
                       <Input placeholder="Enter model number" {...form.register("model")} className={form.formState.errors.model ? "border-danger" : ""} />
@@ -303,7 +303,7 @@ export default function RegisterInstrumentPage() {
 
             {step === 2 && (
               <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
-                
+
                 <Alert className="bg-amber-50 border-amber-200 text-amber-900">
                   <Info className="h-4 w-4 text-amber-600" />
                   <AlertDescription>
@@ -313,14 +313,14 @@ export default function RegisterInstrumentPage() {
 
                 <div className="bg-slate-50 border rounded-lg p-6 space-y-6">
                   <h3 className="text-lg font-bold border-b pb-2">Review Details</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 text-sm">
                     <div><span className="text-gray-500 block mb-1">Category</span><span className="font-semibold">{form.getValues("category")}</span></div>
                     <div><span className="text-gray-500 block mb-1">Make/Manufacturer</span><span className="font-semibold">{form.getValues("manufacturer")}</span></div>
-                    
+
                     <div><span className="text-gray-500 block mb-1">Model</span><span className="font-semibold">{form.getValues("model")}</span></div>
                     <div><span className="text-gray-500 block mb-1">Serial Number</span><span className="font-semibold font-mono">{form.getValues("serialNo")}</span></div>
-                    
+
                     <div><span className="text-gray-500 block mb-1">Accuracy Class</span><span className="font-semibold">{form.getValues("accuracyClass")}</span></div>
                     <div><span className="text-gray-500 block mb-1">Capacity</span><span className="font-semibold">{form.getValues("capacity")}</span></div>
 
