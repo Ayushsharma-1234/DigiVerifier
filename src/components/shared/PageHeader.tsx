@@ -26,7 +26,7 @@ export function PageHeader({ title, subtitle, breadcrumbs, action }: PageHeaderP
               <div key={crumb.label} className="flex items-center">
                 <BreadcrumbItem>
                   {crumb.href && index < breadcrumbs.length - 1 ? (
-                    <BreadcrumbLink asChild>
+                    <BreadcrumbLink>
                       <Link href={crumb.href}>{crumb.label}</Link>
                     </BreadcrumbLink>
                   ) : (

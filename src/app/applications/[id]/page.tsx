@@ -34,7 +34,7 @@ export default function ApplicationDetailPage() {
       <div className="text-center py-24">
         <h2 className="text-2xl font-bold text-gray-900">Application Not Found</h2>
         <p className="text-gray-500 mt-2">The requested application ID does not exist.</p>
-        <Button asChild className="mt-6">
+        <Button className="mt-6">
           <Link href="/applications">Return to Applications</Link>
         </Button>
       </div>
@@ -122,7 +122,7 @@ export default function ApplicationDetailPage() {
   return (
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="mb-6">
-        <Button asChild variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-4">
+        <Button variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-4">
           <Link href="/applications"><ArrowLeft className="w-4 h-4 mr-2" /> Back to Applications</Link>
         </Button>
       </div>

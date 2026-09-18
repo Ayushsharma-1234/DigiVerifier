@@ -62,7 +62,7 @@ export default function InspectionFormPage() {
     return (
       <div className="text-center py-24">
         <h2 className="text-2xl font-bold text-gray-900">Application Not Found</h2>
-        <Button asChild className="mt-6"><Link href="/lmo/queue">Return to Queue</Link></Button>
+        <Button className="mt-6"><Link href="/lmo/queue">Return to Queue</Link></Button>
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function InspectionFormPage() {
       <div className="max-w-4xl mx-auto py-8 animate-in fade-in duration-500 pb-24">
         
         <div className="mb-6 flex items-center gap-4">
-          <Button asChild variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full">
             <Link href="/lmo/queue"><ArrowLeft className="w-5 h-5" /></Link>
           </Button>
           <div>

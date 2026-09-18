@@ -1,18 +1,45 @@
 "use client";
 
 import { PageHeader } from "@/components/shared/PageHeader";
-import { mockCertificates } from "@/lib/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { twMerge } from "tailwind-merge";
-import { Download, ExternalLink, ShieldCheck, FileBadge, CalendarClock, Clock } from "lucide-react";
+import { Download, ExternalLink, ShieldCheck, FileBadge, CalendarClock, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
+import { useCertificates } from "@/hooks/useCertificates";
+import { certificates as certificatesApi } from "@/lib/api";
 
 export default function CertificatesPage() {
+  const { data: certificates = [], isLoading, isError, refetch } = useCertificates();
   const today = new Date();
+
+  const handleDownload = async (id: string, certificateNo: string) => {
+    try {
+      const blob = await certificatesApi.downloadPDF(id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Certificate-${certificateNo}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to download certificate:", error);
+    }
+  };
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 bg-white rounded-xl border border-dashed border-gray-300">
+        <h3 className="text-lg font-bold text-gray-900">Failed to load certificates</h3>
+        <Button onClick={() => refetch()} variant="outline" className="mt-4">Retry?</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -21,7 +48,11 @@ export default function CertificatesPage() {
         subtitle="View and download all your issued verification certificates."
       />
 
-      {mockCertificates.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-24">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      ) : certificates.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-xl border border-dashed border-gray-300">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileBadge className="w-10 h-10 text-gray-300" />
@@ -30,13 +61,13 @@ export default function CertificatesPage() {
           <p className="text-gray-500 mt-1 mb-6 max-w-md mx-auto">
             You don&apos;t have any issued certificates yet. Certificates will appear here once your applications are approved.
           </p>
-          <Button asChild className="bg-secondary hover:bg-secondary/90 text-white font-semibold">
+          <Button className="bg-secondary hover:bg-secondary/90 text-white font-semibold">
             <Link href="/apply">Apply for Verification</Link>
           </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {mockCertificates.map(cert => {
+          {certificates.map((cert: any) => {
             const issueDate = parseISO(cert.issueDate);
             const validUntil = parseISO(cert.validUntil);
             
@@ -44,8 +75,6 @@ export default function CertificatesPage() {
             const totalDays = differenceInDays(validUntil, issueDate);
             const isExpired = daysLeft < 0;
             
-            // Calculate progress (100 = full valid period consumed, 0 = just issued)
-            // Wait, standard progress bar: 100 = full, 0 = empty. Let's show remaining time as progress.
             const progress = Math.max(0, Math.min(100, (daysLeft / totalDays) * 100));
 
             return (
@@ -56,7 +85,7 @@ export default function CertificatesPage() {
                     <div className="shrink-0 flex flex-col items-center justify-center space-y-3">
                       <div className="p-2 bg-white border-2 border-gray-100 rounded-xl shadow-sm">
                         <QRCodeSVG 
-                          value={cert.qrCodeUrl} 
+                          value={cert.qrCodeUrl || ''} 
                           size={100} 
                           level="M" 
                           includeMargin={false} 
@@ -86,9 +115,9 @@ export default function CertificatesPage() {
                       </div>
 
                       <h3 className="text-xl font-bold text-gray-900 mt-4 leading-tight">
-                        {cert.instrumentDetails.name as string}
+                        {cert.verificationRecord?.application?.instrument?.category || "Unknown"}
                       </h3>
-                      <p className="text-gray-500 font-mono text-sm mt-1 mb-6">SN: {cert.instrumentDetails.serialNo as string}</p>
+                      <p className="text-gray-500 font-mono text-sm mt-1 mb-6">SN: {cert.verificationRecord?.application?.instrument?.serialNo || "N/A"}</p>
 
                       <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
                         <div>
@@ -126,10 +155,14 @@ export default function CertificatesPage() {
 
                   {/* Actions */}
                   <div className="p-4 bg-white flex justify-end gap-3">
-                    <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                    <Button 
+                      variant="outline" 
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => handleDownload(cert.id, cert.certificateNo)}
+                    >
                       <Download className="w-4 h-4 mr-2" /> Download PDF
                     </Button>
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
                       <Link href={`/verify/${cert.id}`}>
                         <ExternalLink className="w-4 h-4 mr-2" /> View Certificate
                       </Link>

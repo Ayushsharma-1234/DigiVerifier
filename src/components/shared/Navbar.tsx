@@ -54,7 +54,7 @@ export function Navbar({ title }: NavbarProps) {
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-1">
               <Avatar className="h-9 w-9 border border-gray-200">
                 <AvatarFallback className="bg-primary/10 text-primary font-medium">
@@ -63,7 +63,7 @@ export function Navbar({ title }: NavbarProps) {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-56 mt-2" align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
@@ -76,7 +76,7 @@ export function Navbar({ title }: NavbarProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer">
               <Link href="/profile" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>

@@ -75,7 +75,7 @@ export default function ApplicationsPage() {
         title="My Applications"
         subtitle="Track and manage all your verification and certification applications."
         action={
-          <Button asChild className="bg-secondary hover:bg-secondary/90 text-white shadow-sm font-semibold">
+          <Button className="bg-secondary hover:bg-secondary/90 text-white shadow-sm font-semibold">
             <Link href="/apply">
               <FileText className="mr-2 h-4 w-4" />
               New Application
@@ -109,7 +109,7 @@ export default function ApplicationsPage() {
           {/* Category */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={(val: any) => setCategory(val)}>
               <SelectTrigger className="h-10 bg-gray-50/50">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
@@ -223,7 +223,7 @@ export default function ApplicationsPage() {
                       {app.scheduledDate ? format(parseISO(app.scheduledDate), "dd MMM, yyyy") : "-"}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button asChild variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link href={`/applications/${app.id}`}>
                           <Eye className="w-4 h-4 mr-2" /> View
                         </Link>

@@ -63,7 +63,7 @@ export default function LMODashboard() {
           title="Officer Dashboard" 
           subtitle="Welcome back. Here is your overview for today."
           action={
-            <Button asChild className="bg-primary hover:bg-primary/90 text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-white">
               <Link href="/lmo/queue">View Full Work Queue</Link>
             </Button>
           }
@@ -172,7 +172,7 @@ export default function LMODashboard() {
                               </p>
                             </div>
                           </div>
-                          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto mt-2 sm:mt-0 shrink-0">
+                          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto mt-2 sm:mt-0 shrink-0">
                             <Link href={`/lmo/inspect/${app.id}`}>
                               <Play className="w-4 h-4 mr-2" /> Start Inspection
                             </Link>
@@ -214,7 +214,7 @@ export default function LMODashboard() {
                             <p className="text-xs text-orange-600 font-semibold mt-1">Needs Scheduling</p>
                           )}
                         </div>
-                        <Button variant="ghost" size="sm" asChild className={twMerge(isOverdue ? "text-red-600 hover:text-red-700 hover:bg-red-100" : "")}>
+                        <Button variant="ghost" size="sm" className={twMerge(isOverdue ? "text-red-600 hover:text-red-700 hover:bg-red-100" : "")}>
                           <Link href={`/lmo/queue`}>View</Link>
                         </Button>
                       </div>

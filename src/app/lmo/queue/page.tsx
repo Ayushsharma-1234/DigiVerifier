@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INSTRUMENT_CATEGORIES, APPLICATION_STATUSES } from "@/lib/constants";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { SearchIcon, Filter, X, Eye, Play, ListTodo, Calendar, AlertTriangle, CheckCircle } from "lucide-react";
+import { SearchIcon, Filter, X, Eye, Play, ListTodo, Calendar, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { format, parseISO, isToday, isBefore, startOfToday } from "date-fns";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
@@ -160,7 +160,7 @@ export default function LMOQueuePage() {
             {/* Category */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={(val: any) => setCategory(val)}>
                 <SelectTrigger className="h-10 bg-gray-50/50">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
@@ -176,7 +176,7 @@ export default function LMOQueuePage() {
             {/* Status */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={(val: any) => setStatus(val)}>
                 <SelectTrigger className="h-10 bg-gray-50/50">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
@@ -269,13 +269,13 @@ export default function LMOQueuePage() {
                         <StatusBadge status={app.status} />
                       </td>
                       <td className="px-5 py-4 text-right space-x-2 whitespace-nowrap">
-                        <Button asChild variant="outline" size="sm" className="bg-white">
+                        <Button variant="outline" size="sm" className="bg-white">
                           <Link href={`/applications/${app.id}`}>
                             <Eye className="w-4 h-4 mr-2" /> View
                           </Link>
                         </Button>
                         {app.status === 'SCHEDULED' && (
-                          <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                             <Link href={`/lmo/inspect/${app.id}`}>
                               <Play className="w-4 h-4 mr-2" /> Inspect
                             </Link>

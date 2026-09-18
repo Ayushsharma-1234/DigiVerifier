@@ -148,7 +148,7 @@ export default function ApplyPage() {
           <Scale className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700">No instruments found</h3>
           <p className="text-gray-500 mb-6 mt-2">You need to register an instrument before applying for verification.</p>
-          <Button asChild>
+          <Button>
             <Link href="/instruments/new">Register an Instrument First</Link>
           </Button>
         </div>
@@ -633,10 +633,10 @@ export default function ApplyPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild variant="outline" size="lg" className="sm:flex-1 h-12 bg-white">
+          <Button variant="outline" size="lg" className="sm:flex-1 h-12 bg-white">
             <Link href="/dashboard/applicant">Go to Dashboard</Link>
           </Button>
-          <Button asChild size="lg" className="sm:flex-1 h-12 text-white shadow-md hover:shadow-lg transition-shadow">
+          <Button size="lg" className="sm:flex-1 h-12 text-white shadow-md hover:shadow-lg transition-shadow">
             <Link href={`/applications/${refNum}`}>Track Application</Link>
           </Button>
         </div>

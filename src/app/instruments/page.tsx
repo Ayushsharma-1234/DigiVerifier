@@ -62,7 +62,7 @@ export default function InstrumentsPage() {
 
   // Filtering
   let filtered = mockInstruments.filter((inst) => {
-    const searchMatch = inst.name?.toLowerCase().includes(search.toLowerCase()) || 
+    const searchMatch = inst.model?.toLowerCase().includes(search.toLowerCase()) ||
                         inst.serialNo.toLowerCase().includes(search.toLowerCase()) ||
                         inst.category.toLowerCase().includes(search.toLowerCase());
     const categoryMatch = category === "ALL" || inst.category === category;
@@ -86,7 +86,7 @@ export default function InstrumentsPage() {
         title="My Instruments"
         subtitle="Manage all your registered measuring and weighing instruments."
         action={
-          <Button asChild className="bg-secondary hover:bg-secondary/90 text-white shadow-sm font-semibold">
+          <Button className="bg-secondary hover:bg-secondary/90 text-white shadow-sm font-semibold">
             <Link href="/instruments/new">
               <Plus className="mr-2 h-4 w-4" />
               Register New Instrument
@@ -112,7 +112,7 @@ export default function InstrumentsPage() {
 
         <div className="space-y-1.5 flex-1 w-full sm:max-w-xs">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</label>
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValueChange={(val: any) => setCategory(val)}>
             <SelectTrigger className="h-10">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
@@ -127,7 +127,7 @@ export default function InstrumentsPage() {
 
         <div className="space-y-1.5 flex-1 w-full sm:max-w-[200px]">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
-          <Select value={status} onValueChange={setStatus}>
+          <Select value={status} onValueChange={(val: any) => setCategory(val)}>
             <SelectTrigger className="h-10">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
@@ -229,7 +229,7 @@ export default function InstrumentsPage() {
           </div>
           <h3 className="text-lg font-bold text-gray-900">No instruments found</h3>
           <p className="text-gray-500 mt-1 mb-6">You haven&apos;t registered any instruments matching these filters.</p>
-          <Button asChild className="bg-secondary hover:bg-secondary/90 text-white font-semibold shadow-sm">
+          <Button className="bg-secondary hover:bg-secondary/90 text-white font-semibold shadow-sm">
             <Link href="/instruments/new">
               <Plus className="mr-2 h-4 w-4" />
               Register your first instrument

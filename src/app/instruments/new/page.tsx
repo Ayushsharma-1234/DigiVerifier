@@ -124,7 +124,7 @@ export default function RegisterInstrumentPage() {
                   <div className="space-y-2 flex flex-col">
                     <Label>Instrument Category <span className="text-red-500">*</span></Label>
                     <Popover open={openCategory} onOpenChange={setOpenCategory}>
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger>
                         <Button
                           variant="outline"
                           role="combobox"
@@ -205,7 +205,7 @@ export default function RegisterInstrumentPage() {
 
                     <div className="space-y-2">
                       <Label>Accuracy Class <span className="text-red-500">*</span></Label>
-                      <Select onValueChange={(val) => form.setValue("accuracyClass", val)} defaultValue={form.watch("accuracyClass")}>
+                      <Select onValueChange={(val) => form.setValue("accuracyClass", val as string)} defaultValue={form.watch("accuracyClass")}>
                         <SelectTrigger className={form.formState.errors.accuracyClass ? "border-danger" : ""}>
                           <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
@@ -250,7 +250,7 @@ export default function RegisterInstrumentPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>State <span className="text-red-500">*</span></Label>
-                      <Select onValueChange={(val) => { form.setValue("state", val); form.setValue("district", ""); }} defaultValue={form.watch("state")}>
+                      <Select onValueChange={(val) => { form.setValue("state", val as string); form.setValue("district", ""); }} defaultValue={form.watch("state")}>
                         <SelectTrigger className={form.formState.errors.state ? "border-danger" : ""}>
                           <SelectValue placeholder="Select State" />
                         </SelectTrigger>
@@ -263,7 +263,7 @@ export default function RegisterInstrumentPage() {
 
                     <div className="space-y-2">
                       <Label>District <span className="text-red-500">*</span></Label>
-                      <Select disabled={!selectedState} onValueChange={(val) => form.setValue("district", val)} value={form.watch("district")}>
+                      <Select disabled={!selectedState} onValueChange={(val) => form.setValue("district", val as string)} value={form.watch("district") || undefined}>
                         <SelectTrigger className={form.formState.errors.district ? "border-danger" : ""}>
                           <SelectValue placeholder="Select District" />
                         </SelectTrigger>

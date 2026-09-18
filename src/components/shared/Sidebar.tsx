@@ -54,13 +54,23 @@ const ROLE_NAV_CONFIG = {
   ]
 };
 
+// Define a type that includes the optional badge
+type NavItem = {
+  title: string;
+  href: string;
+  icon: any;
+  badge?: number | string;
+};
+
+const ROLE_NAV_CONFIG_TYPED: Record<string, NavItem[]> = ROLE_NAV_CONFIG;
+
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar, isMobileSidebarOpen, toggleMobileSidebar } = useUIStore();
 
   const role = user?.role as keyof typeof ROLE_NAV_CONFIG;
-  const navItems = role ? ROLE_NAV_CONFIG[role] : [];
+  const navItems = role ? ROLE_NAV_CONFIG_TYPED[role] : [];
 
   return (
     <>
@@ -146,8 +156,8 @@ export function Sidebar() {
 
             if (isSidebarCollapsed) {
               return (
-                <Tooltip key={item.href} delayDuration={0}>
-                  <TooltipTrigger asChild>
+                <Tooltip key={item.href}>
+                  <TooltipTrigger>
                     {content}
                   </TooltipTrigger>
                   <TooltipContent side="right" className="font-medium bg-gray-900 text-white border-gray-800">

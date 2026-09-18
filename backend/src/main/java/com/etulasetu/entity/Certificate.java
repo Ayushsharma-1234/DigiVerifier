@@ -39,6 +39,9 @@ public class Certificate {
 
     private String qrCodeUrl;
     
+    @Column(columnDefinition="TEXT")
+    private String qrCodeBase64;
+    
     private LocalDate issueDate;
     private LocalDate validUntil;
 

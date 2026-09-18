@@ -128,15 +128,16 @@ export default function AdminDashboard() {
         
         {/* Header & Jurisdiction Selector */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <PageHeader 
-            title="National Command Center" 
-            subtitle="Oversight and monitoring dashboard for Legal Metrology."
-            className="mb-0 pb-0"
-          />
+          <div className="mb-8">
+            <PageHeader
+              title="National Control Center"
+              subtitle="Real-time monitoring of legal metrology activities across jurisdictions."
+            />
+          </div>
           
           <div className="flex flex-wrap items-center gap-3 bg-white p-2 rounded-lg border shadow-sm">
             <MapPin className="w-5 h-5 text-gray-400 ml-2" />
-            <Select value={country} onValueChange={setCountry}>
+            <Select value={country} onValueChange={(val: any) => setCountry(val)}>
               <SelectTrigger className="w-[120px] h-9 border-none bg-transparent shadow-none focus:ring-0 font-semibold text-gray-700">
                 <SelectValue />
               </SelectTrigger>
@@ -147,7 +148,7 @@ export default function AdminDashboard() {
 
             <span className="text-gray-300">/</span>
             
-            <Select value={state} onValueChange={setState}>
+            <Select value={state} onValueChange={(val: any) => setState(val)}>
               <SelectTrigger className="w-[140px] h-9 border-none bg-transparent shadow-none focus:ring-0 font-semibold text-gray-700">
                 <SelectValue placeholder="All States" />
               </SelectTrigger>
@@ -163,7 +164,7 @@ export default function AdminDashboard() {
 
             <span className="text-gray-300">/</span>
 
-            <Select value={district} onValueChange={setDistrict} disabled={state === "ALL"}>
+            <Select value={district} onValueChange={(val: any) => setDistrict(val)} disabled={state === "ALL"}>
               <SelectTrigger className="w-[140px] h-9 border-none bg-transparent shadow-none focus:ring-0 font-semibold text-gray-700">
                 <SelectValue placeholder="All Districts" />
               </SelectTrigger>

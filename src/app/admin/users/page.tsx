@@ -107,7 +107,7 @@ export default function UserManagementPage() {
           </div>
           
           <div className="flex gap-4 w-full md:w-auto">
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <Select value={roleFilter} onValueChange={(val: any) => setRoleFilter(val)}>
               <SelectTrigger className="w-full md:w-[160px] h-10">
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
@@ -120,7 +120,7 @@ export default function UserManagementPage() {
               </SelectContent>
             </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
               <SelectTrigger className="w-full md:w-[160px] h-10">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
