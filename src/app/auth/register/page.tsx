@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
@@ -67,7 +67,17 @@ const registerSchema = z.object({
 
   if (data.role === "APPLICANT") {
     if (!data.idType) ctx.addIssue({ code: "custom", path: ["idType"], message: "Required" });
-    if (!data.idValue || data.idValue.length < 5) ctx.addIssue({ code: "custom", path: ["idValue"], message: "Valid ID is required" });
+    if (!data.idValue) {
+      ctx.addIssue({ code: "custom", path: ["idValue"], message: "Valid ID is required" });
+    } else if (data.idType === "AADHAAR" && !/^\d{12}$/.test(data.idValue)) {
+      ctx.addIssue({ code: "custom", path: ["idValue"], message: "Aadhaar must be exactly 12 digits" });
+    } else if (data.idType === "GSTIN") {
+      if (data.idValue.length !== 15) {
+        ctx.addIssue({ code: "custom", path: ["idValue"], message: "GSTIN must be exactly 15 characters" });
+      } else if (!/^\d{2}[A-Za-z]{5}\d{4}[A-Za-z]{1}[1-9A-Za-z]{1}[Zz][0-9A-Za-z]{1}$/.test(data.idValue)) {
+        ctx.addIssue({ code: "custom", path: ["idValue"], message: "Invalid GSTIN format (e.g. 27ABCDE1234F1Z5)" });
+      }
+    }
   }
 
   if (data.role === "LMO") {
@@ -93,7 +103,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, trigger, formState: { errors } } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, setValue, watch, trigger, control, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: undefined,
@@ -214,8 +224,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
 
             {/* STEP 1: Account Type */}
-            {step === 1 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className={step === 1 ? "space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500" : "hidden"}>
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-900">Select Account Type</h2>
                   <p className="text-muted-foreground mt-2">Choose the role that best describes you or your organization.</p>
@@ -250,38 +259,36 @@ export default function RegisterPage() {
                     );
                   })}
                 </div>
-              </div>
-            )}
+            </div>
 
             {/* STEP 2: Personal Details */}
-            {step === 2 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className={step === 2 ? "space-y-8 animate-in fade-in slide-in-from-right-4 duration-500" : "hidden"}>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Basic Details</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Full Name</Label>
-                      <Input id="fullName" {...register("fullName")} className={errors.fullName ? "border-danger" : ""} />
+                      <input id="fullName" {...register("fullName")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.fullName ? "border-danger ring-danger/20 ring-2" : ""}`} />
                       {errors.fullName && <p className="text-xs text-danger">{errors.fullName.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" {...register("email")} className={errors.email ? "border-danger" : ""} />
+                      <input id="email" type="email" {...register("email")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.email ? "border-danger ring-danger/20 ring-2" : ""}`} />
                       {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" placeholder="+91 " {...register("phone")} className={errors.phone ? "border-danger" : ""} />
+                      <input id="phone" placeholder="+91 " {...register("phone")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.phone ? "border-danger ring-danger/20 ring-2" : ""}`} />
                       {errors.phone && <p className="text-xs text-danger">{errors.phone.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">Password</Label>
-                      <Input id="password" type="password" {...register("password")} className={errors.password ? "border-danger" : ""} />
+                      <input id="password" type="password" {...register("password")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.password ? "border-danger ring-danger/20 ring-2" : ""}`} />
                       {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <Input id="confirmPassword" type="password" {...register("confirmPassword")} className={errors.confirmPassword ? "border-danger" : ""} />
+                      <input id="confirmPassword" type="password" {...register("confirmPassword")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.confirmPassword ? "border-danger ring-danger/20 ring-2" : ""}`} />
                       {errors.confirmPassword && <p className="text-xs text-danger">{errors.confirmPassword.message}</p>}
                     </div>
                   </div>
@@ -294,24 +301,30 @@ export default function RegisterPage() {
                     <div className="space-y-6">
                       <div className="space-y-3">
                         <Label>Identifier Type</Label>
-                        <RadioGroup
-                          defaultValue={watch("idType")}
-                          onValueChange={(val) => setValue("idType", val as "AADHAAR" | "GSTIN")}
-                          className="flex space-x-4"
-                        >
-                          <div className="flex items-center space-x-2 border p-3 rounded-md pr-6">
-                            <RadioGroupItem value="AADHAAR" id="r-aadhaar" />
-                            <Label htmlFor="r-aadhaar" className="cursor-pointer font-medium">Aadhaar Number</Label>
-                          </div>
-                          <div className="flex items-center space-x-2 border p-3 rounded-md pr-6">
-                            <RadioGroupItem value="GSTIN" id="r-gstin" />
-                            <Label htmlFor="r-gstin" className="cursor-pointer font-medium">GSTIN</Label>
-                          </div>
-                        </RadioGroup>
+                        <div className="flex space-x-4">
+                          <label className={`flex items-center space-x-2 border p-3 rounded-md pr-6 cursor-pointer ${watch("idType") === "AADHAAR" ? "border-primary bg-primary/5" : ""}`}>
+                            <input 
+                              type="radio" 
+                              value="AADHAAR" 
+                              {...register("idType")}
+                              className="size-4 text-primary focus:ring-primary border-input accent-primary" 
+                            />
+                            <span className="font-medium">Aadhaar Number</span>
+                          </label>
+                          <label className={`flex items-center space-x-2 border p-3 rounded-md pr-6 cursor-pointer ${watch("idType") === "GSTIN" ? "border-primary bg-primary/5" : ""}`}>
+                            <input 
+                              type="radio" 
+                              value="GSTIN" 
+                              {...register("idType")}
+                              className="size-4 text-primary focus:ring-primary border-input accent-primary" 
+                            />
+                            <span className="font-medium">GSTIN</span>
+                          </label>
+                        </div>
                       </div>
                       <div className="space-y-2 max-w-md">
-                        <Label htmlFor="idValue">{watch("idType") === "AADHAAR" ? "12-Digit Aadhaar Number" : "15-Digit GSTIN"}</Label>
-                        <Input id="idValue" {...register("idValue")} className={errors.idValue ? "border-danger" : ""} />
+                        <Label htmlFor="idValue">ID Number</Label>
+                        <input id="idValue" {...register("idValue")} placeholder="Enter ID number" maxLength={watch("idType") === "AADHAAR" ? 12 : 15} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.idValue ? "border-danger ring-danger/20 ring-2" : ""}`} />
                         {errors.idValue && <p className="text-xs text-danger">{errors.idValue.message}</p>}
                       </div>
                     </div>
@@ -324,32 +337,23 @@ export default function RegisterPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="employeeId">Employee ID</Label>
-                        <Input id="employeeId" {...register("employeeId")} className={errors.employeeId ? "border-danger" : ""} />
+                        <input id="employeeId" {...register("employeeId")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.employeeId ? "border-danger ring-danger/20 ring-2" : ""}`} />
                         {errors.employeeId && <p className="text-xs text-danger">{errors.employeeId.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="designation">Designation</Label>
-                        <Select onValueChange={(val) => setValue("designation", val as string)} defaultValue={watch("designation")}>
-                          <SelectTrigger className={errors.designation ? "border-danger" : ""}>
-                            <SelectValue placeholder="Select Designation" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Inspector">Inspector</SelectItem>
-                            <SelectItem value="Assistant Controller">Assistant Controller</SelectItem>
-                            <SelectItem value="Deputy Controller">Deputy Controller</SelectItem>
-                            <SelectItem value="Joint Controller">Joint Controller</SelectItem>
-                            <SelectItem value="Controller">Controller</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <input id="designation" {...register("designation")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.designation ? "border-danger ring-danger/20 ring-2" : ""}`} />
                         {errors.designation && <p className="text-xs text-danger">{errors.designation.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="state">State</Label>
-                        <Input id="state" {...register("state")} className={errors.state ? "border-danger" : ""} />
+                        <input id="state" {...register("state")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.state && <p className="text-xs text-danger">{errors.state.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="district">District</Label>
-                        <Input id="district" {...register("district")} className={errors.district ? "border-danger" : ""} />
+                        <input id="district" {...register("district")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.district && <p className="text-xs text-danger">{errors.district.message}</p>}
                       </div>
                     </div>
                   </div>
@@ -361,19 +365,23 @@ export default function RegisterPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                       <div className="space-y-2">
                         <Label htmlFor="organizationName">Organization Name</Label>
-                        <Input id="organizationName" {...register("organizationName")} className={errors.organizationName ? "border-danger" : ""} />
+                        <input id="organizationName" {...register("organizationName")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.organizationName ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.organizationName && <p className="text-xs text-danger">{errors.organizationName.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="licenseNumber">License Number</Label>
-                        <Input id="licenseNumber" {...register("licenseNumber")} className={errors.licenseNumber ? "border-danger" : ""} />
+                        <input id="licenseNumber" {...register("licenseNumber")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.licenseNumber ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.licenseNumber && <p className="text-xs text-danger">{errors.licenseNumber.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="state">State</Label>
-                        <Input id="state" {...register("state")} className={errors.state ? "border-danger" : ""} />
+                        <input id="state" {...register("state")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.state && <p className="text-xs text-danger">{errors.state.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="district">District</Label>
-                        <Input id="district" {...register("district")} className={errors.district ? "border-danger" : ""} />
+                        <input id="district" {...register("district")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        {errors.district && <p className="text-xs text-danger">{errors.district.message}</p>}
                       </div>
                     </div>
 
@@ -395,12 +403,10 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
+            </div>
 
             {/* STEP 3: Review & Submit */}
-            {step === 3 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className={step === 3 ? "space-y-8 animate-in fade-in slide-in-from-right-4 duration-500" : "hidden"}>
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">Review & Submit</h2>
                   <p className="text-muted-foreground mt-2">Please verify your details before final submission.</p>
@@ -474,7 +480,6 @@ export default function RegisterPage() {
                 {errors.termsConfirmed && <p className="text-sm text-danger text-center">{errors.termsConfirmed.message}</p>}
 
               </div>
-            )}
 
             {/* Navigation Actions */}
             <div className="mt-10 flex items-center justify-between pt-6 border-t">
