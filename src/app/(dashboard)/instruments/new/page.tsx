@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Combobox } from "@/components/ui/combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -32,18 +33,12 @@ const instrumentSchema = z.object({
   address2: z.string().optional(),
   state: z.string().min(1, "State is required"),
   district: z.string().min(1, "District is required"),
+  taluka: z.string().min(1, "Taluka is required"),
   pincode: z.string().regex(/^\d{6}$/, "Must be a valid 6-digit pincode").min(1, "Pincode is required"),
 });
 
 type InstrumentFormValues = z.infer<typeof instrumentSchema>;
-
-const mockStates = ["Maharashtra", "Karnataka", "Delhi", "Gujarat"];
-const mockDistricts: Record<string, string[]> = {
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
-  "Karnataka": ["Bengaluru", "Mysuru", "Hubballi"],
-  "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara"],
-};
+import { INDIA_STATES_AND_DISTRICTS, getTalukasForDistrict } from "@/lib/location-data";
 
 export default function RegisterInstrumentPage() {
   const router = useRouter();
@@ -65,6 +60,7 @@ export default function RegisterInstrumentPage() {
       address2: "",
       state: "",
       district: "",
+      taluka: "",
       pincode: "",
     },
   });
@@ -72,6 +68,16 @@ export default function RegisterInstrumentPage() {
   const selectedCategory = form.watch("category");
   const isGATC = selectedCategory ? getRouting(selectedCategory) === "GATC" : false;
   const selectedState = form.watch("state");
+  
+  const stateOptions = Object.keys(INDIA_STATES_AND_DISTRICTS).map(s => ({ label: s, value: s }));
+  const districtOptions = selectedState && INDIA_STATES_AND_DISTRICTS[selectedState]
+    ? INDIA_STATES_AND_DISTRICTS[selectedState].map(d => ({ label: d, value: d }))
+    : [];
+    
+  const selectedDistrict = form.watch("district");
+  const talukaOptions = selectedDistrict
+    ? getTalukasForDistrict(selectedDistrict).map(t => ({ label: t, value: t }))
+    : [];
 
   const onNext = async () => {
     const isValid = await form.trigger();
@@ -250,28 +256,71 @@ export default function RegisterInstrumentPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>State <span className="text-red-500">*</span></Label>
-                      <Select onValueChange={(val) => { form.setValue("state", val as string); form.setValue("district", ""); }} defaultValue={form.watch("state")}>
-                        <SelectTrigger className={form.formState.errors.state ? "border-danger" : ""}>
-                          <SelectValue placeholder="Select State" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockStates.map(st => <SelectItem key={st} value={st}>{st}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="state"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Combobox
+                            options={stateOptions}
+                            value={field.value || ""}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              form.setValue("district", "");
+                              form.setValue("taluka", "");
+                            }}
+                            placeholder="Select State"
+                            searchPlaceholder="Search state..."
+                            emptyText="No state found."
+                            className={form.formState.errors.state ? "border-danger ring-danger/20 ring-2" : ""}
+                          />
+                        )}
+                      />
                       {form.formState.errors.state && <p className="text-xs text-danger">{form.formState.errors.state.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label>District <span className="text-red-500">*</span></Label>
-                      <Select disabled={!selectedState} onValueChange={(val) => form.setValue("district", val as string)} value={form.watch("district") || undefined}>
-                        <SelectTrigger className={form.formState.errors.district ? "border-danger" : ""}>
-                          <SelectValue placeholder="Select District" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedState && mockDistricts[selectedState]?.map(dst => <SelectItem key={dst} value={dst}>{dst}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="district"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Combobox
+                            options={districtOptions}
+                            value={field.value || ""}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              form.setValue("taluka", "");
+                            }}
+                            placeholder={selectedState ? "Select District" : "Select State First"}
+                            searchPlaceholder="Search district..."
+                            emptyText="No district found."
+                            disabled={!selectedState}
+                            className={form.formState.errors.district ? "border-danger ring-danger/20 ring-2" : ""}
+                          />
+                        )}
+                      />
                       {form.formState.errors.district && <p className="text-xs text-danger">{form.formState.errors.district.message}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Taluka/Subdivision <span className="text-red-500">*</span></Label>
+                      <Controller
+                        name="taluka"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Combobox
+                            options={talukaOptions}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder={selectedDistrict ? "Select Taluka" : "Select District First"}
+                            searchPlaceholder="Search taluka..."
+                            emptyText="No taluka found."
+                            disabled={!selectedDistrict}
+                            className={form.formState.errors.taluka ? "border-danger ring-danger/20 ring-2" : ""}
+                          />
+                        )}
+                      />
+                      {form.formState.errors.taluka && <p className="text-xs text-danger">{form.formState.errors.taluka.message}</p>}
                     </div>
 
                     <div className="space-y-2">

@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Store, ShieldCheck, TestTube, ShieldAlert, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { GATC_CATEGORIES } from "@/lib/constants";
+import { INDIA_STATES_AND_DISTRICTS, getTalukasForDistrict } from "@/lib/location-data";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 import api from "@/lib/api";
@@ -58,6 +60,7 @@ const registerSchema = z.object({
   // Shared fields
   state: z.string().optional(),
   district: z.string().optional(),
+  taluka: z.string().optional(),
 
   termsConfirmed: z.boolean().refine(val => val === true, "You must confirm accuracy of details"),
 }).superRefine((data, ctx) => {
@@ -85,6 +88,7 @@ const registerSchema = z.object({
     if (!data.designation) ctx.addIssue({ code: "custom", path: ["designation"], message: "Required" });
     if (!data.state) ctx.addIssue({ code: "custom", path: ["state"], message: "Required" });
     if (!data.district) ctx.addIssue({ code: "custom", path: ["district"], message: "Required" });
+    if (!data.taluka) ctx.addIssue({ code: "custom", path: ["taluka"], message: "Required" });
   }
 
   if (data.role === "GATC") {
@@ -93,6 +97,7 @@ const registerSchema = z.object({
     if (!data.authorizedCategories || data.authorizedCategories.length === 0) ctx.addIssue({ code: "custom", path: ["authorizedCategories"], message: "Select at least one" });
     if (!data.state) ctx.addIssue({ code: "custom", path: ["state"], message: "Required" });
     if (!data.district) ctx.addIssue({ code: "custom", path: ["district"], message: "Required" });
+    if (!data.taluka) ctx.addIssue({ code: "custom", path: ["taluka"], message: "Required" });
   }
 });
 
@@ -102,6 +107,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
+
+
 
   const { register, handleSubmit, setValue, watch, trigger, control, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -118,6 +125,7 @@ export default function RegisterPage() {
       designation: "",
       state: "",
       district: "",
+      taluka: "",
       organizationName: "",
       licenseNumber: "",
       authorizedCategories: [],
@@ -125,6 +133,17 @@ export default function RegisterPage() {
     },
     mode: "onChange"
   });
+
+  const stateOptions = Object.keys(INDIA_STATES_AND_DISTRICTS).map(s => ({ label: s, value: s }));
+  const selectedState = watch("state");
+  const districtOptions = selectedState && INDIA_STATES_AND_DISTRICTS[selectedState]
+    ? INDIA_STATES_AND_DISTRICTS[selectedState].map(d => ({ label: d, value: d }))
+    : [];
+  
+  const selectedDistrict = watch("district");
+  const talukaOptions = selectedDistrict
+    ? getTalukasForDistrict(selectedDistrict).map(t => ({ label: t, value: t }))
+    : [];
 
   const selectedRole = watch("role");
   const formValues = watch();
@@ -346,14 +365,70 @@ export default function RegisterPage() {
                         {errors.designation && <p className="text-xs text-danger">{errors.designation.message}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <input id="state" {...register("state")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        <Label>State</Label>
+                        <Controller
+                          name="state"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={stateOptions}
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                setValue("district", "");
+                                setValue("taluka", "");
+                              }}
+                              placeholder="Select State"
+                              searchPlaceholder="Search state..."
+                              emptyText="No state found."
+                              className={errors.state ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
                         {errors.state && <p className="text-xs text-danger">{errors.state.message}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="district">District</Label>
-                        <input id="district" {...register("district")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        <Label>District</Label>
+                        <Controller
+                          name="district"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={districtOptions}
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                setValue("taluka", "");
+                              }}
+                              placeholder={watch("state") ? "Select District" : "Select State First"}
+                              searchPlaceholder="Search district..."
+                              emptyText="No district found."
+                              disabled={!watch("state")}
+                              className={errors.district ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
                         {errors.district && <p className="text-xs text-danger">{errors.district.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Taluka/Subdivision</Label>
+                        <Controller
+                          name="taluka"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={talukaOptions}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder={watch("district") ? "Select Taluka" : "Select District First"}
+                              searchPlaceholder="Search taluka..."
+                              emptyText="No taluka found."
+                              disabled={!watch("district")}
+                              className={errors.taluka ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
+                        {errors.taluka && <p className="text-xs text-danger">{errors.taluka.message}</p>}
                       </div>
                     </div>
                   </div>
@@ -374,14 +449,70 @@ export default function RegisterPage() {
                         {errors.licenseNumber && <p className="text-xs text-danger">{errors.licenseNumber.message}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <input id="state" {...register("state")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        <Label>State</Label>
+                        <Controller
+                          name="state"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={stateOptions}
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                setValue("district", "");
+                                setValue("taluka", "");
+                              }}
+                              placeholder="Select State"
+                              searchPlaceholder="Search state..."
+                              emptyText="No state found."
+                              className={errors.state ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
                         {errors.state && <p className="text-xs text-danger">{errors.state.message}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="district">District</Label>
-                        <input id="district" {...register("district")} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-danger ring-danger/20 ring-2" : ""}`} />
+                        <Label>District</Label>
+                        <Controller
+                          name="district"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={districtOptions}
+                              value={field.value || ""}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                setValue("taluka", "");
+                              }}
+                              placeholder={watch("state") ? "Select District" : "Select State First"}
+                              searchPlaceholder="Search district..."
+                              emptyText="No district found."
+                              disabled={!watch("state")}
+                              className={errors.district ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
                         {errors.district && <p className="text-xs text-danger">{errors.district.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Taluka/Subdivision</Label>
+                        <Controller
+                          name="taluka"
+                          control={control}
+                          render={({ field }) => (
+                            <Combobox
+                              options={talukaOptions}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder={watch("district") ? "Select Taluka" : "Select District First"}
+                              searchPlaceholder="Search taluka..."
+                              emptyText="No taluka found."
+                              disabled={!watch("district")}
+                              className={errors.taluka ? "border-danger ring-danger/20 ring-2" : ""}
+                            />
+                          )}
+                        />
+                        {errors.taluka && <p className="text-xs text-danger">{errors.taluka.message}</p>}
                       </div>
                     </div>
 
